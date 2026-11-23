@@ -29,18 +29,48 @@ function deleteOwner(PDO $pdo, $ownerId, int $userId): void
     }
 }
 
+// Soft-delete a pet: mark it as deleted instead of removing the row, so the
+// record can be restored from the recycle bin later.
 function deletePet(PDO $pdo, $petId, int $userId): void
 {
     $id = validateRecordId($petId, 'pet');
     $pdo->beginTransaction();
     try {
         $pet = loadAuditSnapshot($pdo, 'Pet', $id);
+        $stmt = $pdo->prepare(
+            'UPDATE pets SET deleted_at = CURRENT_TIMESTAMP, deleted_by = :deleted_by '
+            . 'WHERE pet_id = :pet_id AND deleted_at IS NULL'
+        );
+        $stmt->execute(['deleted_by' => $userId, 'pet_id' => $id]);
+        if ($stmt->rowCount() === 0) {
+            throw new OutOfBoundsException('Pet not found or already deleted.');
+        }
         logAuditEvent($pdo, $userId, 'DELETE', 'Pet', $id, $pet, null);
-        $stmt = $pdo->prepare('DELETE FROM pets WHERE pet_id = :pet_id');
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $e;
+    }
+}
+
+// Restore a soft-deleted pet so it appears in the pet table again.
+function restorePet(PDO $pdo, $petId, int $userId): void
+{
+    $id = validateRecordId($petId, 'pet');
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare(
+            'UPDATE pets SET deleted_at = NULL, deleted_by = NULL '
+            . 'WHERE pet_id = :pet_id AND deleted_at IS NOT NULL'
+        );
         $stmt->execute(['pet_id' => $id]);
         if ($stmt->rowCount() === 0) {
-            throw new OutOfBoundsException('Pet not found.');
+            throw new OutOfBoundsException('Pet not found or not deleted.');
         }
+        $pet = loadAuditSnapshot($pdo, 'Pet', $id);
+        logAuditEvent($pdo, $userId, 'INSERT', 'Pet', $id, null, $pet);
         $pdo->commit();
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) {

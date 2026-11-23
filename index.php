@@ -21,6 +21,7 @@ require_once __DIR__ . '/functions/layout.php';
             <div class="home-nav">
                 <a href="owners.php">Manage Pet Owners</a>
                 <a href="pets.php">Manage Pets</a>
+                <a href="recycle_bin.php">Recycle Bin</a>
                 <a href="view.php">View Owners &amp; Pets</a>
                 <a href="audit_logs.php">Audit Logs</a>
             </div>

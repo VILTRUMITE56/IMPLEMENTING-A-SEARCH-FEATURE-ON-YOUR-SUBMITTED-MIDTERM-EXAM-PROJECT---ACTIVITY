@@ -35,9 +35,17 @@ try {
                     <p class="empty-state">No pets registered for this owner.</p>
                 <?php else: ?>
                     <div class="table-wrap"><table>
-                        <thead><tr><th>Pet ID</th><th>Pet name</th><th>Species</th><th>Breed</th><th>Grooming date</th><th>Status</th><th>Added by</th><th>Added at</th><th>Last updated by</th><th>Last updated</th></tr></thead>
+                        <thead><tr><th>Pet ID</th><th>Image</th><th>Pet name</th><th>Species</th><th>Breed</th><th>Grooming date</th><th>Status</th><th>Added by</th><th>Added at</th><th>Last updated by</th><th>Last updated</th></tr></thead>
                         <tbody><?php foreach ($o['pets'] as $p): ?><tr>
-                            <td><?php echo (int) $p['pet_id']; ?></td><td><?php echo escapeHtml($p['pet_name']); ?></td><td><?php echo escapeHtml($p['species']); ?></td><td><?php echo escapeHtml($p['breed'] ?? ''); ?></td><td><?php echo escapeHtml($p['grooming_date'] ?? ''); ?></td><td><?php echo escapeHtml($p['status']); ?></td>
+                            <td><?php echo (int) $p['pet_id']; ?></td>
+                            <td>
+                                <?php if (!empty($p['pet_image'] ?? '')): ?>
+                                    <img src="<?php echo escapeHtml($p['pet_image']); ?>" alt="Pet image" class="pet-image-thumb">
+                                <?php else: ?>
+                                    <span class="muted">—</span>
+                                <?php endif; ?>
+                            </td>
+                            <td><?php echo escapeHtml($p['pet_name']); ?></td><td><?php echo escapeHtml($p['species']); ?></td><td><?php echo escapeHtml($p['breed'] ?? ''); ?></td><td><?php echo escapeHtml($p['grooming_date'] ?? ''); ?></td><td><?php echo escapeHtml($p['status']); ?></td>
                             <td><?php echo escapeHtml($p['added_by_name'] ?? 'Legacy / Unknown'); ?></td><td><?php echo escapeHtml($p['added_at'] ?? 'Unknown'); ?></td>
                             <td><?php echo escapeHtml($p['last_updated'] === null ? 'Not updated yet' : ($p['last_updated_by_name'] ?? 'Legacy / Unknown')); ?></td><td><?php echo escapeHtml($p['last_updated'] ?? 'Not updated yet'); ?></td>
                         </tr><?php endforeach; ?></tbody>

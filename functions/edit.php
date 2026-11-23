@@ -30,17 +30,25 @@ function editOwner(PDO $pdo, $ownerId, $ownerName, $phone, $email, int $userId):
     }
 }
 
-function editPet(PDO $pdo, $petId, $petName, $species, $breed, $groomingDate, $status, $ownerId, int $userId): void
+function editPet(PDO $pdo, $petId, $petName, $species, $breed, $groomingDate, $status, $ownerId, int $userId, array $petImageFile = null, $existingImage = null, bool $removeImage = false): void
 {
     $id = validateRecordId($petId, 'pet');
     [$name, $speciesValue, $breedValue, $dateValue, $statusValue, $ownerIdValue] =
         salonPetInput($pdo, $petName, $species, $breed, $groomingDate, $status, $ownerId);
+    $imagePath = $existingImage;
+    if ($removeImage) {
+        removePetImageFile($imagePath);
+        $imagePath = null;
+    }
+    if ($petImageFile !== null && ($petImageFile['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+        $imagePath = uploadPetImage($petImageFile, $imagePath);
+    }
     $pdo->beginTransaction();
     try {
         $before = loadAuditSnapshot($pdo, 'Pet', $id);
         $stmt = $pdo->prepare(
             'UPDATE pets SET pet_name = :pet_name, species = :species, breed = :breed, '
-            . 'grooming_date = :grooming_date, status = :status, owner_id = :owner_id, '
+            . 'grooming_date = :grooming_date, status = :status, owner_id = :owner_id, pet_image = :pet_image, '
             . 'last_updated_by = :last_updated_by, last_updated = CURRENT_TIMESTAMP WHERE pet_id = :pet_id'
         );
         $stmt->execute([
@@ -50,6 +58,7 @@ function editPet(PDO $pdo, $petId, $petName, $species, $breed, $groomingDate, $s
             'grooming_date' => $dateValue,
             'status' => $statusValue,
             'owner_id' => $ownerIdValue,
+            'pet_image' => $imagePath,
             'last_updated_by' => $userId,
             'pet_id' => $id,
         ]);

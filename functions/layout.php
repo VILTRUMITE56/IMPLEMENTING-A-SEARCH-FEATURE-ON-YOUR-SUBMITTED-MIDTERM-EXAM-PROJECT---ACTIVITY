@@ -6,6 +6,7 @@ function renderNavigation(string $activePage = ''): void
         'index.php' => ['Home', 'home'],
         'owners.php' => ['Manage Pet Owners', 'owners'],
         'pets.php' => ['Manage Pets', 'pets'],
+        'recycle_bin.php' => ['Recycle Bin', 'recycle'],
         'view.php' => ['View Owners & Pets', 'view'],
         'audit_logs.php' => ['Audit Logs', 'audit'],
     ];

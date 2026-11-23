@@ -47,6 +47,9 @@ CREATE TABLE IF NOT EXISTS pets (
     breed VARCHAR(50) NULL,
     grooming_date DATE NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'Pending',
+    pet_image VARCHAR(255) NULL,
+    deleted_at DATETIME NULL DEFAULT NULL,
+    deleted_by INT NULL,
     owner_id INT NOT NULL,
     added_by INT NULL,
     added_at DATETIME NULL DEFAULT NULL,
@@ -60,6 +63,8 @@ CREATE TABLE IF NOT EXISTS pets (
     CONSTRAINT fk_pets_added_by FOREIGN KEY (added_by)
         REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT fk_pets_last_updated_by FOREIGN KEY (last_updated_by)
+        REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT fk_pets_deleted_by FOREIGN KEY (deleted_by)
         REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

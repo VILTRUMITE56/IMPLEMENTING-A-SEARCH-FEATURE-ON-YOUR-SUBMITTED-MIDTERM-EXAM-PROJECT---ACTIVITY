@@ -25,7 +25,9 @@ For the in-place XSS attack and restore steps, see [scripts/XSS_DEMO_README.md](
 3. Select `pet_grooming_db`, choose **Import**, and run `Database/migrations/001_user_auth_audit.sql` once.
 4. The migration creates `users` and `audit_logs` and adds nullable audit columns and foreign keys to the existing owner and pet tables. It does not delete or rewrite existing owners or pets; old attribution remains unknown.
 5. Do not run this one-time migration again after it succeeds. Do not use `Database/schema.sql` as an upgrade script: `CREATE TABLE IF NOT EXISTS` does not add columns to existing tables.
-6. Register an account at `http://localhost/AppdevExam/register.php` and log in.
+6. To enable per-pet images and the recycle bin, also import `Database/migrations/002_pet_image_recycle_bin.sql` once. It adds the `pet_image`, `deleted_at`, and `deleted_by` columns to the `pets` table.
+7. Make sure the `uploads/pets/` directory (inside the project folder) exists and is writable by the web server so pet images can be stored.
+8. Register an account at `http://localhost/AppdevExam/register.php` and log in.
 
 ## Using and checking the application
 
@@ -36,9 +38,11 @@ For the in-place XSS attack and restore steps, see [scripts/XSS_DEMO_README.md](
 5. Use **Manage Pets** to add a pet linked to an existing owner, edit it, and delete it. Each successful action also appears in **Audit Logs**.
 6. On **Manage Pet Owners**, search by owner name, phone, email, or ID. On **Manage Pets**, search by pet name, species, breed, status, owner name, or ID. Use the Edit and Delete actions on a matching result; the search is kept after the action.
 7. Check the Added By / Added At and Last Updated By / Last Updated columns. `added_at` is the created timestamp field (the assignment calls it `date_added`); it is set to the database's current timestamp when the app creates a row. For an update, `last_updated` is set to the current timestamp and `last_updated_by` stores the acting user's integer ID. The original creator is retained. Rows created before account tracking was installed display unknown historical attribution.
-8. Delete an owner that has pets and check Audit Logs for a DELETE event for the owner and each cascaded pet.
-9. **View Owners & Pets** keeps owners with no pets visible and shows attribution for both entity types.
-10. Use **Log out**. Directly opening `index.php`, `owners.php`, `pets.php`, `view.php`, or `audit_logs.php` should return you to login.
+8. Delete a pet and check **Audit Logs** for the DELETE event (who deleted it and when). Deleted pets move to the **Recycle Bin** instead of being permanently removed.
+9. Open **Recycle Bin** to see deleted pets with the user who deleted them and the deletion timestamp. Use **Restore** to bring a pet back to the pet table; confirm it reappears on **Manage Pets** with its image intact.
+10. On **Manage Pets**, add a pet and attach an image (the issue photo). The image appears as a thumbnail in the pet table and on **View Owners & Pets**.
+11. **View Owners & Pets** keeps owners with no pets visible and shows attribution for both entity types.
+12. Use **Log out**. Directly opening `index.php`, `owners.php`, `pets.php`, `view.php`, `audit_logs.php`, or `recycle_bin.php` should return you to login.
 
 ## Security and database notes
 
